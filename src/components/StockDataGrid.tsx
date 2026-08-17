@@ -16,8 +16,8 @@ const rows: GridRowsProp = [
 
 function StockDataGrid() {
   return (
-    <div style={{ width: '75%' }}>
-      <DataGrid rows={rows} columns={columns} />
+    <div className="w-3/5">
+      <DataGrid columns={columns} rows={rows} />
     </div>
   )
 }
