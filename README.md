@@ -1,4 +1,10 @@
-# Steps to building turtlemarket
+# Turtlemarket: The Stock Market Dashboard for Introductory Traders
+
+## About
+
+This README.md is under construction and will probably be updated once primary functionality is implemeneted.
+
+## TODO
 
 1. Stock Market Tracker
   - Build the DataGrid UI (MUI X)
