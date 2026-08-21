@@ -12,10 +12,10 @@ class StockDay(models.Model):
     date = models.DateField(auto_now_add=True)
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE, related_name='prices')
 
-    openPrice = models.DecimalField(max_digits=15, decimal_places=2)
-    closePrice = models.DecimalField(max_digits=15, decimal_places=2)
-    highPrice = models.DecimalField(max_digits=15, decimal_places=2)
-    lowPrice = models.DecimalField(max_digits=15, decimal_places=2)
+    open_price = models.DecimalField(max_digits=15, decimal_places=2)
+    close_price = models.DecimalField(max_digits=15, decimal_places=2)
+    high_price = models.DecimalField(max_digits=15, decimal_places=2)
+    low_price = models.DecimalField(max_digits=15, decimal_places=2)
     volume = models.BigIntegerField()
 
     class Meta:

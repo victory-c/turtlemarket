@@ -1,7 +1,9 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [ 
-    path("stocks/", views.StockList.as_view()),
-    path("stocks/<int:pk>", views.StockInfo.as_view())
+    path("auth/", include("rest_framework.urls")),
+    path("stocks/", views.StockList.as_view(), name='stock-list'),
+    path("stocks/<str:ticker>", views.StockDetail.as_view(), name='stock-detail'),
+    path("stocks/<str:ticker>/history", views.StockHistory.as_view(), name='stock-history'),
 ]

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Stock, StockDay
+from .models import Stock, StockDay
 
 class StockSerializer(serializers.ModelSerializer):
     class Meta:
@@ -9,4 +9,4 @@ class StockSerializer(serializers.ModelSerializer):
 class StockDaySerializer(serializers.ModelSerializer):
     class Meta:
         model = StockDay
-        fields = ["id", "date", "stock", "openPrice", "closePrice", "highPrice", "lowPrice", "volume"]
+        fields = ["id", "date", "stock", "open_price", "close_price", "high_price", "low_price", "volume"]
