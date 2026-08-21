@@ -1,6 +1,14 @@
-from django.http import HttpResponse
-from django.shortcuts import render
+from rest_framework import generics
+from api.models import Stock, StockDay
+from api.serializers import StockSerializer, StockDaySerializer
 
 # Create your views here.
-def getTest(request):
-  return HttpResponse("hello world")
+class StockInfo(generics.RetrieveAPIView):
+  # Retrieve single stock info
+  queryset = Stock.objects.all()
+  serializer_class = StockSerializer
+
+class StockList(generics.ListAPIView):
+  # View list of stocks
+  queryset = Stock.objects.all()
+  serializer_class = StockSerializer
