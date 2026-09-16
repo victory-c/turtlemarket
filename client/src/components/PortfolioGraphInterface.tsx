@@ -2,21 +2,8 @@ import { LineChart } from '@mui/x-charts/LineChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { useDrawingArea } from '@mui/x-charts/hooks';
 import { styled } from '@mui/material/styles';
-
-const prices: Record<string, number[]> = {
-  'AAPL': [308.26, 304.91, 302.25, 305.26, 305.93],
-  'GOOG': [355.84, 343.00, 342.37, 343.94, 343.54],
-  'JNJ': [261.81, 259.80, 260.86, 262.08, 260.35],
-  'SHEL': [89.95, 90.50, 90.07, 89.92, 90.47],
-}
-
-const dates = [
-  new Date("2026-08-11"),
-  new Date("2026-08-12"),
-  new Date("2026-08-13"),
-  new Date("2026-08-14"),
-  new Date("2026-08-15"),
-]
+import { useEffect, useMemo, useState } from 'react';
+import { fetchStockHistory, fetchStocks, type StockDay } from '../api';
 
 const StyledText = styled('text')(({ theme }) => ({
   fill: theme.palette.text.primary,
@@ -35,12 +22,48 @@ function PieCenterLabel({ children }: { children: React.ReactNode }) {
 }
 
 function PortfolioGraphInterface() {
+  const [tickers, setTickers] = useState<string[]>([]);
+  const [historyByTicker, setHistoryByTicker] = useState<Record<string, StockDay[]>>({});
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const stocks = await fetchStocks();
+        const selected = stocks.slice(0, 4).map((stock) => stock.ticker);
+        const histories = await Promise.all(
+          selected.map(async (ticker) => [ticker, await fetchStockHistory(ticker)] as const),
+        );
+        setTickers(selected);
+        setHistoryByTicker(Object.fromEntries(histories));
+      } catch {
+        setTickers([]);
+        setHistoryByTicker({});
+      }
+    };
+
+    void loadData();
+  }, []);
+
+  const chartTickers = useMemo(() => tickers.slice(0, 2), [tickers]);
+  const firstTicker = chartTickers[0];
+  const secondTicker = chartTickers[1];
+  const firstHistory = firstTicker ? historyByTicker[firstTicker] ?? [] : [];
+  const secondHistory = secondTicker ? historyByTicker[secondTicker] ?? [] : [];
+  const dates = firstHistory.map((entry) => new Date(entry.date)).reverse();
+  const firstPrices = firstHistory.map((entry) => Number(entry.close_price)).reverse();
+  const secondPrices = secondHistory.map((entry) => Number(entry.close_price)).reverse();
+  const pieData = tickers.map((ticker, index) => ({
+    id: index,
+    label: ticker,
+    value: Number(historyByTicker[ticker]?.[0]?.close_price ?? 0),
+  }));
+
   return (
     <div className="h-1/2 w-9/10 flex flex-wrap justify-around content-center">
       <div className="w-1/3">
         <LineChart 
           series={[
-            { data: prices['AAPL'], label: 'AAPL', showMark: true, shape: 'circle', color: 'red' },
+            { data: firstPrices, label: firstTicker ?? 'No data', showMark: true, shape: 'circle', color: 'red' },
           ]}
           xAxis={[{ 
             scaleType: 'point', 
@@ -55,12 +78,7 @@ function PortfolioGraphInterface() {
         <PieChart 
           series={[
             {
-              data: [
-                { id: 0, value: 500, label: 'AAPL', color: 'red' },
-                { id: 1, value: 500, label: 'GOOG', color: 'green' },
-                { id: 2, value: 250, label: 'JNJ', color: 'orange' },
-                { id: 3, value: 150, label: 'SHEL', color: 'yellow' },
-              ],
+              data: pieData,
               innerRadius: '60%',
             }
           ]}>
@@ -70,7 +88,7 @@ function PortfolioGraphInterface() {
       <div className="w-1/3">
         <LineChart 
           series={[
-            { data: prices['GOOG'], label: 'GOOG', showMark: true, shape: 'circle', color: 'green' },
+            { data: secondPrices, label: secondTicker ?? 'No data', showMark: true, shape: 'circle', color: 'green' },
           ]}
           xAxis={[{ 
             scaleType: 'point', 
@@ -87,4 +105,3 @@ function PortfolioGraphInterface() {
 }
 
 export default PortfolioGraphInterface;
-
