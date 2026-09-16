@@ -1,4 +1,6 @@
 import { DataGrid, type GridRowsProp, type GridColDef } from '@mui/x-data-grid';
+import { useEffect, useState } from 'react';
+import { fetchStockHistory, fetchStocks } from '../api';
 
 const columns: GridColDef[] = [
   { field: 'ticker', headerName: 'Ticker', flex: 1 },
@@ -7,14 +9,49 @@ const columns: GridColDef[] = [
   { field: 'price', headerName: 'Price at Close', flex: 2 },
 ]
 
-const rows: GridRowsProp = [
-  { id: 0, ticker: 'AAPL', name: 'Apple Inc', dayChange: '+0.67 (+0.22%)', price: '$305.93' },
-  { id: 1, ticker: 'GOOG', name: 'Alphabet Inc Class C', dayChange: '-0.40 (-0.12%)', price: '$343.54' },
-  { id: 2, ticker: 'JNJ', name: 'Johnson & Johnson', dayChange: '-1.73 (-0.66%)', price: '$260.35' },
-  { id: 3, ticker: 'SHEL', name: 'Shell PLC', dayChange: '+1.33 (+1.49%)', price: '$90.47' },
-]
-
 function StockDataGrid() {
+  const [rows, setRows] = useState<GridRowsProp>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const stocks = await fetchStocks();
+        const rowsWithPricing = await Promise.all(
+          stocks.map(async (stock) => {
+            const history = await fetchStockHistory(stock.ticker);
+            if (history.length === 0) {
+              return {
+                id: stock.id,
+                ticker: stock.ticker,
+                name: stock.name,
+                dayChange: 'N/A',
+                price: 'N/A',
+              };
+            }
+
+            const latestClose = Number(history[0]?.close_price ?? 0);
+            const previousClose = Number(history[1]?.close_price ?? latestClose);
+            const dayDelta = latestClose - previousClose;
+            const dayDeltaPercent = previousClose === 0 ? 0 : (dayDelta / previousClose) * 100;
+
+            return {
+              id: stock.id,
+              ticker: stock.ticker,
+              name: stock.name,
+              dayChange: `${dayDelta >= 0 ? '+' : ''}${dayDelta.toFixed(2)} (${dayDeltaPercent >= 0 ? '+' : ''}${dayDeltaPercent.toFixed(2)}%)`,
+              price: `$${latestClose.toFixed(2)}`,
+            };
+          }),
+        );
+        setRows(rowsWithPricing);
+      } catch {
+        setRows([]);
+      }
+    };
+
+    void loadData();
+  }, []);
+
   return (
     <div className="w-3/5">
       <DataGrid columns={columns} rows={rows} />
