@@ -19,6 +19,16 @@ function StockDataGrid() {
         const rowsWithPricing = await Promise.all(
           stocks.map(async (stock) => {
             const history = await fetchStockHistory(stock.ticker);
+            if (history.length === 0) {
+              return {
+                id: stock.id,
+                ticker: stock.ticker,
+                name: stock.name,
+                dayChange: 'N/A',
+                price: 'N/A',
+              };
+            }
+
             const latestClose = Number(history[0]?.close_price ?? 0);
             const previousClose = Number(history[1]?.close_price ?? latestClose);
             const dayDelta = latestClose - previousClose;

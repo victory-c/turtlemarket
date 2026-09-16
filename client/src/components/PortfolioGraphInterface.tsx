@@ -21,6 +21,11 @@ function PieCenterLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+function parseLocalDate(date: string): Date {
+  const [year, month, day] = date.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
 function PortfolioGraphInterface() {
   const [tickers, setTickers] = useState<string[]>([]);
   const [historyByTicker, setHistoryByTicker] = useState<Record<string, StockDay[]>>({});
@@ -49,7 +54,8 @@ function PortfolioGraphInterface() {
   const secondTicker = chartTickers[1];
   const firstHistory = firstTicker ? historyByTicker[firstTicker] ?? [] : [];
   const secondHistory = secondTicker ? historyByTicker[secondTicker] ?? [] : [];
-  const dates = firstHistory.map((entry) => new Date(entry.date)).reverse();
+  const firstDates = firstHistory.map((entry) => parseLocalDate(entry.date)).reverse();
+  const secondDates = secondHistory.map((entry) => parseLocalDate(entry.date)).reverse();
   const firstPrices = firstHistory.map((entry) => Number(entry.close_price)).reverse();
   const secondPrices = secondHistory.map((entry) => Number(entry.close_price)).reverse();
   const pieData = tickers.map((ticker, index) => ({
@@ -67,8 +73,8 @@ function PortfolioGraphInterface() {
           ]}
           xAxis={[{ 
             scaleType: 'point', 
-            data: dates, 
-            tickInterval: dates, 
+            data: firstDates, 
+            tickInterval: firstDates, 
             valueFormatter: (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
           }]}
           grid={{ vertical: true, horizontal: true }}
@@ -92,8 +98,8 @@ function PortfolioGraphInterface() {
           ]}
           xAxis={[{ 
             scaleType: 'point', 
-            data: dates, 
-            tickInterval: dates, 
+            data: secondDates, 
+            tickInterval: secondDates, 
             valueFormatter: (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
           }]}
           grid={{ vertical: true, horizontal: true }}

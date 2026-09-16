@@ -9,7 +9,7 @@ class Stock(models.Model):
         max_length=5,
         validators=[
             RegexValidator(
-                regex=r'^[A-Z]{1,5}$',
+                regex=r'\A[A-Z]{1,5}\Z',
                 message='Ticker must be uppercase and at most 5 characters.',
             )
         ],
@@ -17,8 +17,12 @@ class Stock(models.Model):
     name = models.CharField(max_length=100)
 
     def clean(self):
-        if not self.name.strip():
+        if self.name is None or not self.name.strip():
             raise ValidationError({'name': 'Name cannot be empty.'})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.ticker} | {self.name}"
@@ -38,6 +42,13 @@ class StockDay(models.Model):
         indexes = [
             models.Index(fields=['stock', '-date']), 
             models.Index(fields=['date']),
+        ]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(open_price__gte=Decimal('0.01')), name='stockday_open_price_gte_001'),
+            models.CheckConstraint(condition=models.Q(close_price__gte=Decimal('0.01')), name='stockday_close_price_gte_001'),
+            models.CheckConstraint(condition=models.Q(high_price__gte=Decimal('0.01')), name='stockday_high_price_gte_001'),
+            models.CheckConstraint(condition=models.Q(low_price__gte=Decimal('0.01')), name='stockday_low_price_gte_001'),
+            models.CheckConstraint(condition=models.Q(volume__gte=1), name='stockday_volume_gte_1'),
         ]
         ordering = ['-date']
     
